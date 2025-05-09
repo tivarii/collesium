@@ -1,0 +1,2 @@
+DJANGO_SECRET_KEY = "atoms@54321"
+JWT_SECRET_KEY = "jwt@123"
