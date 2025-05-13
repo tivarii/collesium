@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Edit, MoreHorizontal, Trash } from "lucide-react"
 
 import { categories as initialCategories, type Category } from "@/lib/data"
+import { useCategory } from "@/contexts/categoryContext"
 import { formatDate } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -29,16 +30,16 @@ import {
 } from "@/components/ui/alert-dialog"
 
 export function CategoriesTable() {
-  const [categories, setCategories] = useState<Category[]>(initialCategories)
+  const { categories } = useCategory()
   const [searchTerm, setSearchTerm] = useState("")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null)
 
-  const filteredCategories = categories.filter(
+  const filteredCategories = (categories !== null)?categories.filter(
     (category) =>
       category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      category.description.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+      category.description?.toLowerCase().includes(searchTerm.toLowerCase()) || false,
+  ):[]
 
   const handleDelete = (category: Category) => {
     setCategoryToDelete(category)
@@ -46,11 +47,11 @@ export function CategoriesTable() {
   }
 
   const confirmDelete = () => {
-    if (categoryToDelete) {
-      setCategories(categories.filter((c) => c.id !== categoryToDelete.id))
-      setDeleteDialogOpen(false)
-      setCategoryToDelete(null)
-    }
+    // if (categoryToDelete) {
+    //   setCategories(categories.filter((c) => c.id !== categoryToDelete.id))
+    //   setDeleteDialogOpen(false)
+    //   setCategoryToDelete(null)
+    // }
   }
 
   return (
@@ -86,8 +87,8 @@ export function CategoriesTable() {
                 <TableRow key={category.id}>
                   <TableCell className="font-medium">{category.name}</TableCell>
                   <TableCell className="hidden md:table-cell">{category.description}</TableCell>
-                  <TableCell className="hidden md:table-cell">{formatDate(category.createdAt)}</TableCell>
-                  <TableCell className="hidden md:table-cell">{formatDate(category.updatedAt)}</TableCell>
+                  <TableCell className="hidden md:table-cell">{category?.created_at ? formatDate(new Date(category.created_at)) : "N/A"}</TableCell>
+                  <TableCell className="hidden md:table-cell">{category?.updated_at ? formatDate(new Date (category.updated_at)):"N/A"}</TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -107,7 +108,7 @@ export function CategoriesTable() {
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="flex cursor-pointer items-center text-destructive focus:text-destructive"
-                          onClick={() => handleDelete(category)}
+                          // onClick={() => handleDelete(category)}
                         >
                           <Trash className="mr-2 h-4 w-4" />
                           Delete

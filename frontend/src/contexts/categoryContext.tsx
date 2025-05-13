@@ -1,9 +1,13 @@
+"use client"
+
 import axios from "axios";
 import { createContext, useContext, useEffect, useState } from "react";
 interface Category {
-    id: string;
+    id?: string;
     name: string;
     description?: string;
+    created_at?: string;
+    updated_at?: string;
     // Add other properties as needed
 }
 
@@ -12,7 +16,7 @@ interface CategoryContextType {
     loading: boolean;
     error: string | null;
     fetchCategories: () => Promise<void>;
-    createCategory: (category: Omit<Category, "id">) => Promise<void>;
+    createCategory: (data: Omit<Category, "id">) => Promise<void>;
 }
 const CategoryContext = createContext<CategoryContextType | undefined>(undefined);
 
@@ -25,7 +29,16 @@ export function CategoryProvider({ children }: { children: React.ReactNode }) {
         try {
             setLoading(true);
             setError(null);
-            const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/categories`);
+            const token = localStorage.getItem('access_token');
+            const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/categories`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            // console.log("response:", response.data);
+            if (response.status !== 200) {
+                throw new Error('Failed to fetch categories');
+            }
             setCategories(response.data);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An error occurred while fetching categories');
@@ -35,35 +48,47 @@ export function CategoryProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
-    const createCategory = async (category: Omit<Category, "id">) => {
+    const createCategory = async (data: Omit<Category, "id">) => {
+        const token = localStorage.getItem('access_token');
         try {
             setError(null);
-            const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/categories`, category);
+            const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/categories/`, 
+                JSON.stringify(data), 
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+            console.log("response to create:", response.data);
             setCategories((prevCategories) => [...prevCategories, response.data]);
+            return response;
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An error occurred while creating category');
             console.error('Error creating category:', err);
+            return err;
         }
     };
 
     useEffect(() => {
         fetchCategories();
     }, []);
+    
     return (
-        <CategoryContext.
-      value= {{
-        categories,
+        <CategoryContext.Provider
+          value={{
+            categories,
             loading,
             error,
             fetchCategories,
             createCategory,
-    }
-}>
-    { children }
-    </CategoryContext.>
+          }}
+        >
+          {children}
+        </CategoryContext.Provider>
     );
-    
-};
+}
 
 export function useCategory() {
     const context = useContext(CategoryContext);

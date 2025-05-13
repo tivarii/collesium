@@ -9,12 +9,12 @@ export type Category = {
 }
 
 export type Subcategory = {
-    id: string
+    id?: string
     name: string
     description: string
     categoryId: string
-    createdAt: Date
-    updatedAt: Date
+    createdAt?: Date
+    updatedAt?: Date
 }
 
 export type Product = {

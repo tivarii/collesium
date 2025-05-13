@@ -1,3 +1,5 @@
+"use client"
+
 import { CategoriesTable } from "@/components/categories-table"
 import { PageHeader } from "@/components/page-header"
 

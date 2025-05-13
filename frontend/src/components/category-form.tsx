@@ -4,15 +4,17 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { generateId } from "@/lib/utils"
+// import { generateId } from "@/lib/utils"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { useCategory } from "@/contexts/categoryContext"
 
 export function CategoryForm() {
+  const { createCategory } = useCategory()
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
@@ -25,21 +27,26 @@ export function CategoryForm() {
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
-    // Simulate API call
-    setTimeout(() => {
-      console.log("Category created:", {
-        id: generateId(),
-        ...formData,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      })
-      setIsLoading(false)
+    const response:any = await createCategory({name: formData.name, description: formData.description});
+    if (response.status === 201) {
       router.push("/admin/categories")
-    }, 1000)
+    }
+
+    // Simulate API call
+    // setTimeout(() => {
+    //   console.log("Category created:", {
+    //     id: generateId(),
+    //     ...formData,
+    //     createdAt: new Date(),
+    //     updatedAt: new Date(),
+    //   })
+    //   setIsLoading(false)
+    //   router.push("/admin/categories")
+    // }, 1000)
   }
 
   return (

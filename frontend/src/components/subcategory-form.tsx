@@ -5,7 +5,7 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { generateId } from "@/lib/utils"
-import { categories } from "@/lib/data"
+// import { categories } from "@/lib/data"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -13,14 +13,18 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useCategory } from "@/contexts/categoryContext"
+import { useSubCategory } from "@/contexts/subCategoryContext"
 
 export function SubcategoryForm() {
+  const { categories } = useCategory()
+  const { createSubcategory } = useSubCategory()
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    categoryId: "",
+    category: "",
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -29,13 +33,34 @@ export function SubcategoryForm() {
   }
 
   const handleSelectChange = (value: string) => {
-    setFormData((prev) => ({ ...prev, categoryId: value }))
+    setFormData((prev) => ({ ...prev, category: value }))
   }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-
+    const { name, description, category } = formData
+    if (!name || !description || !category) {
+      alert("Please fill in all fields")
+      setIsLoading(false)
+      return
+    }
+    createSubcategory({
+      name,
+      description,
+      category,
+    })
+      .then(() => {
+        setFormData({ name: "", description: "", category: "" })
+        router.push("/admin/subcategories")
+      })
+      .catch((error) => {
+        console.error("Error creating subcategory:", error)
+        alert("Failed to create subcategory")
+      })
+      .finally(() => {
+        setIsLoading(false)
+      }) ; 
     // Simulate API call
     setTimeout(() => {
       console.log("Subcategory created:", {
@@ -81,16 +106,20 @@ export function SubcategoryForm() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="category">Parent Category</Label>
-            <Select value={formData.categoryId} onValueChange={handleSelectChange} required>
+            <Select value="ram" onValueChange={handleSelectChange} required>
               <SelectTrigger id="category">
-                <SelectValue placeholder="Select a category" />
+                <SelectValue placeholder="Select a category">
+                  {formData.category ? categories?.find((cat) => cat.id === formData.category)?.name : "Select a category"}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
-                {categories.map((category) => (
-                  <SelectItem key={category.id} value={category.id}>
-                    {category.name}
-                  </SelectItem>
-                ))}
+                {categories
+                  ?.filter((category) => category.id !== undefined)
+                  .map((category) => (
+                    <SelectItem key={category.id?.toString()} value={category.id as string}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           </div>

@@ -1,3 +1,5 @@
+"use client"
+
 import { SubcategoriesTable } from "@/components/subcategories-table"
 import { PageHeader } from "@/components/page-header"
 

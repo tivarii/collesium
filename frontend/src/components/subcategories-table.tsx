@@ -1,10 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Edit, MoreHorizontal, Trash } from "lucide-react"
 
-import { subcategories as initialSubcategories, categories, type Subcategory } from "@/lib/data"
+import { useSubCategory } from "@/contexts/subCategoryContext"
+import { SubCategoryInterface } from "@/contexts/subCategoryContext"
+import { useCategory } from "@/contexts/categoryContext"
 import { formatDate } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -29,30 +31,30 @@ import {
 } from "@/components/ui/alert-dialog"
 
 export function SubcategoriesTable() {
-  const [subcategories, setSubcategories] = useState<Subcategory[]>(initialSubcategories)
+  const { subcategories } = useSubCategory()
+  const { categories } = useCategory()
   const [searchTerm, setSearchTerm] = useState("")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [subcategoryToDelete, setSubcategoryToDelete] = useState<Subcategory | null>(null)
-
-  const filteredSubcategories = subcategories.filter(
+  const [subcategoryToDelete, setSubcategoryToDelete] = useState<SubCategoryInterface | null>(null);
+  const filteredSubcategories = (subcategories !== null )?(subcategories.filter(
     (subcategory) =>
-      subcategory.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      subcategory.description.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+      subcategory.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      subcategory.description?.toLowerCase().includes(searchTerm.toLowerCase()),
+  )):[]
 
   const getCategoryName = (categoryId: string) => {
-    const category = categories.find((c) => c.id === categoryId)
+    const category = (categories !== null)?categories.find((c) => c.id === categoryId):null
     return category ? category.name : "Unknown"
   }
 
-  const handleDelete = (subcategory: Subcategory) => {
+  const handleDelete = (subcategory: SubCategoryInterface) => {
     setSubcategoryToDelete(subcategory)
     setDeleteDialogOpen(true)
   }
 
   const confirmDelete = () => {
     if (subcategoryToDelete) {
-      setSubcategories(subcategories.filter((s) => s.id !== subcategoryToDelete.id))
+      // setSubcategories(subcategories.filter((s) => s.id !== subcategoryToDelete.id))
       setDeleteDialogOpen(false)
       setSubcategoryToDelete(null)
     }
@@ -91,8 +93,8 @@ export function SubcategoriesTable() {
                 <TableRow key={subcategory.id}>
                   <TableCell className="font-medium">{subcategory.name}</TableCell>
                   <TableCell className="hidden md:table-cell">{subcategory.description}</TableCell>
-                  <TableCell>{getCategoryName(subcategory.categoryId)}</TableCell>
-                  <TableCell className="hidden md:table-cell">{formatDate(subcategory.createdAt)}</TableCell>
+                  <TableCell>{getCategoryName(subcategory.category)}</TableCell>
+                  <TableCell className="hidden md:table-cell">{(subcategory.created_at)?formatDate(new Date(subcategory.created_at)):"N/A"}</TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
