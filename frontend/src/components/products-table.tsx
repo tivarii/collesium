@@ -5,7 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { Edit, MoreHorizontal, Trash } from "lucide-react"
 
-import { products as initialProducts, categories, subcategories, type Product } from "@/lib/data"
+// import { products as initialProducts, categories, subcategories, type Product } from "@/lib/data"
 import { formatCurrency } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -29,41 +29,46 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
+import { useCategory } from "@/contexts/categoryContext"
+import { useSubCategory } from "@/contexts/subCategoryContext"
+import { useProduct } from "@/contexts/productContext"
 
 export function ProductsTable() {
-  const [products, setProducts] = useState<Product[]>(initialProducts)
+  const { products } = useProduct()
+  const { categories } = useCategory()
+  const { subcategories } = useSubCategory()
   const [searchTerm, setSearchTerm] = useState("")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [productToDelete, setProductToDelete] = useState<Product | null>(null)
 
-  const filteredProducts = products.filter(
+  const filteredProducts = products?.filter(
     (product) =>
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.description.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
   const getCategoryName = (categoryId: string) => {
-    const category = categories.find((c) => c.id === categoryId)
+    const category = categories?.find((c) => c.id === categoryId)
     return category ? category.name : "Unknown"
   }
 
   const getSubcategoryName = (subcategoryId: string) => {
-    const subcategory = subcategories.find((s) => s.id === subcategoryId)
+    const subcategory = subcategories?.find((s) => s.id === subcategoryId)
     return subcategory ? subcategory.name : "Unknown"
   }
 
-  const handleDelete = (product: Product) => {
-    setProductToDelete(product)
-    setDeleteDialogOpen(true)
-  }
+  // const handleDelete = (product: Product) => {
+  //   setProductToDelete(product)
+  //   setDeleteDialogOpen(true)
+  // }
 
-  const confirmDelete = () => {
-    if (productToDelete) {
-      setProducts(products.filter((p) => p.id !== productToDelete.id))
-      setDeleteDialogOpen(false)
-      setProductToDelete(null)
-    }
-  }
+  // const confirmDelete = () => {
+  //   if (productToDelete) {
+  //     setProducts(products.filter((p) => p.id !== productToDelete.id))
+  //     setDeleteDialogOpen(false)
+  //     setProductToDelete(null)
+  //   }
+  // }
 
   return (
     <div className="space-y-4">
@@ -89,14 +94,14 @@ export function ProductsTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredProducts.length === 0 ? (
+            {filteredProducts?.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="h-24 text-center">
                   No products found.
                 </TableCell>
               </TableRow>
             ) : (
-              filteredProducts.map((product) => (
+              filteredProducts?.map((product) => (
                 <TableRow key={product.id}>
                   <TableCell>
                     <Image
@@ -135,7 +140,7 @@ export function ProductsTable() {
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="flex cursor-pointer items-center text-destructive focus:text-destructive"
-                          onClick={() => handleDelete(product)}
+                          // onClick={() => handleDelete(product)}
                         >
                           <Trash className="mr-2 h-4 w-4" />
                           Delete
@@ -159,12 +164,12 @@ export function ProductsTable() {
               {productToDelete && <strong> {productToDelete.name}</strong>} and all associated data.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          {/* <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
               Delete
             </AlertDialogAction>
-          </AlertDialogFooter>
+          </AlertDialogFooter> */}
         </AlertDialogContent>
       </AlertDialog>
     </div>
